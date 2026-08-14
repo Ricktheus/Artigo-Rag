@@ -1,205 +1,185 @@
-# 🏛️ RAG Hierárquico e Resolução de Referências Cruzadas para Normas Regulamentadoras (NRs)
+# RAG Hierarquico e Resolucao de Referencias Cruzadas para Normas Regulamentadoras (NRs)
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![LlamaIndex](https://img.shields.io/badge/LlamaIndex-0.11%2B-orange.svg)](https://www.llamaindex.ai/)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20Store-red.svg)](https://qdrant.tech/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/)
 
-> **Prova de Conceito (PoC) para Artigo Acadêmico:**  
-> Implementação de uma arquitetura de **Retrieval-Augmented Generation (RAG) Hierárquico** com **Indexação Híbrida (Dense + BM25)** e **Resolução em Grafo de Referências Cruzadas Inter-Normas**, aplicada ao arcabouço de Segurança e Saúde no Trabalho brasileiro.
+Repositorio complementar com o codigo-fonte e experimentos de avaliacao de arquitetura de Recuperacao Aumentada por Geracao (RAG) aplicada ao dominio juridico-regulatorio brasileiro. O trabalho investiga tecnicas de indexacao estruturada em arvore, busca hibrida (Dense + BM25) e navegacao em grafo para resolucao de referencias inter-normas nas Normas Regulamentadoras (NRs) de Seguranca e Saude no Trabalho.
 
 ---
 
-## 📌 1. Contexto e Motivação Acadêmica
+## 1. Fundamentacao Teorica e Motivacao
 
-Normas Regulamentadoras (NRs) e diplomas jurídicos possuem características estruturais que desafiam os sistemas de RAG tradicionais baseados em *chunking plano* (*flat chunking*):
+Modelos convencionais de RAG fundamentados em segmentacao plana (*flat chunking*) por tamanho de janela de contexto apresentam degradacao de desempenho quando aplicados a diplomas normativos complexos. Os principais desafios tecnicos identificados compreendem:
 
-1. **Dependência Hierárquica Estrita**: Um subitem regulatório (ex.: `Item 10.2.4`) só possui validade material quando qualificado pela sua seção de escopo pai (`Seção 10.2 - Medidas de Controle`). O chunking plano fragmenta o texto e perde a relação de subordinação (regras gerais vs. exceções).
-2. **Alta Densidade de Termos Técnicos e Acrônimos**: Termos como `CIPA`, `CA`, `SPQ`, `SPDA`, `75 kW`, `IPVS` e códigos de artigos exigem correspondência exata. A busca puramente vetorial densa pode sofrer com alucinações semânticas; por isso, a **Busca Híbrida (Denso + BM25 esparso)** é mandatória.
-3. **Interdependência e Referências Cruzadas Inter-Normas**: As NRs não são documentos isolados. A NR-10 (Eletricidade) e a NR-35 (Trabalho em Altura) frequentemente remetem à NR-06 para seleção de Equipamentos de Proteção Individual (EPIs) ou à NR-01 para gerenciamento de riscos (PGR). 
+1. **Dependencia Hierarquica de Escopo**: Subitens regulatorios sao subordinados a secoes, capitulos e disposicoes gerais que definem seu campo de aplicacao material e subjetivo. A perda do no ancestral descontextualiza a regra especifica.
+2. **Vocabulario Tecnico Especializado e Acronimos**: A presenca frequente de parametros numericos e siglas tecnicas (e.g., CIPA, CA, SPQ, SPDA, 75 kW) demanda casamento lexico preciso, tornando a busca puramente semantica insuficiente.
+3. **Interconexao Normativa**: Dispositivos legais realizam remissao expressa a normas correlatas (e.g., a NR-10 e a NR-35 remetem a NR-06 para especificacao e gestao de EPIs).
 
-Este repositório implementa uma arquitetura capaz de:
-- Indexar as normas preservando a árvore genealógica de cada item (`PARENT`, `CHILD`, `PREVIOUS`, `NEXT`).
-- Expandir dinamicamente o contexto dos nós pais durante a recuperação.
-- Realizar consultas multi-hop silenciosas para resolver referências cruzadas dentro do escopo.
+A arquitetura proposta estrutura as normas como arvores hierarquicas conectadas, permitindo a reconstrucao ascendente de contexto e a resolucao de referencias cruzadas no momento da inferencia.
 
 ---
 
-## 🎯 2. Escopo Regulatório (5 NRs)
+## 2. Escopo Experimental
 
-O escopo experimental deste trabalho abrange 5 normas fundamentais:
+O estudo delimita a analise experimental a um corpus composto por 5 Normas Regulamentadoras:
 
-| Norma | Título / Tema Principal | Nós Estruturados |
+| Norma | Descricao Tematica | Total de Nos |
 | :--- | :--- | :---: |
-| **NR-05** | Comissão Interna de Prevenção de Acidentes e de Assédio (CIPA) | 101 nós |
-| **NR-06** | Equipamentos de Proteção Individual (EPI) | 13 nós |
-| **NR-10** | Segurança em Instalações e Serviços em Eletricidade | 118 nós |
-| **NR-11** | Transporte, Movimentação, Armazenagem e Manuseio de Materiais | 38 nós |
-| **NR-35** | Trabalho em Altura e Proteção Contra Quedas | 60 nós |
-| **TOTAL** | **Arcabouço Regulatório Indexado** | **330 nós** |
+| **NR-05** | Comissao Interna de Prevencao de Acidentes e de Assedio (CIPA) | 101 |
+| **NR-06** | Equipamentos de Protecao Individual (EPI) | 13 |
+| **NR-10** | Seguranca em Instalacoes e Servicos em Eletricidade | 118 |
+| **NR-11** | Transporte, Movimentacao, Armazenagem e Manuseio de Materiais | 38 |
+| **NR-35** | Trabalho em Altura | 60 |
+| **Total** | **Corpus Estruturado** | **330 nos** |
 
 ---
 
-## 🏗️ 3. Arquitetura do Sistema
+## 3. Arquitetura do Sistema
 
 ```mermaid
 flowchart TD
-    subgraph Ingestao ["1. Ingestão & Parsing Estrutural"]
-        PDFs["PDFs Oficiais das NRs"] --> Parser["parser_fixed.py / Extracao_json_NRs.ipynb"]
-        Parser --> JSONs["JSONs de Árvore (nrs_extraidas/)"]
-        JSONs --> NodeBuilder["node_builder.py (TextNodes + Metadados + UUIDs)"]
-        NodeBuilder --> DocStore["Docstore Local JSON (./storage)"]
+    subgraph Ingestao ["1. Ingestao e Estruturacao"]
+        PDFs["PDFs Oficiais das NRs"] --> Parser["parser_fixed.py"]
+        Parser --> JSONs["Arvores Estruturais (nrs_extraidas/)"]
+        JSONs --> NodeBuilder["node_builder.py (TextNodes com PARENT, CHILD, PREV, NEXT)"]
+        NodeBuilder --> DocStore["Docstore Local (storage/)"]
     end
 
-    subgraph Indexacao ["2. Indexação Híbrida Qdrant"]
+    subgraph Indexacao ["2. Indexacao Hibrida no Qdrant"]
         NodeBuilder --> Dense["Dense Embeddings (paraphrase-multilingual-MiniLM-L12-v2)"]
         NodeBuilder --> Sparse["Sparse Embeddings (Qdrant/bm25 via FastEmbed)"]
         Dense --> Qdrant["Qdrant Local (./qdrant_data)"]
         Sparse --> Qdrant
     end
 
-    subgraph Recuperacao ["3. Motor de Recuperação & Expansão"]
-        UserQuery["Pergunta do Usuário"] --> Retriever["retriever.py (HierarchicalCrossReferenceRetriever)"]
-        Qdrant -->|Busca Híbrida Top-K| Retriever
-        Retriever -->|Expansão Pai & Irmãos| DocStore
-        Retriever -->|Resolução Multi-hop Inter-NR| DocStore
-        Retriever --> Contexto["Contexto Hierárquico Unificado"]
+    subgraph Recuperacao ["3. Motor de Recuperacao Hierarquica"]
+        UserQuery["Consulta"] --> Retriever["retriever.py (HierarchicalCrossReferenceRetriever)"]
+        Qdrant -->|Busca Hibrida Top-K| Retriever
+        Retriever -->|Expansao Ascendente/Irmaos| DocStore
+        Retriever -->|Resolucao de Referencias Cruzadas| DocStore
+        Retriever --> Contexto["Contexto Unificado"]
     end
 
-    subgraph Geracao ["4. Geração & Síntese Técnica"]
-        Contexto --> Prompt["Prompt Jurídico (Regras Gerais vs Exceções)"]
+    subgraph Geracao ["4. Sintese e Geracao de Resposta"]
+        Contexto --> Prompt["Prompt Estruturado"]
         UserQuery --> Prompt
         Prompt --> QueryEngine["query_engine.py / main.py"]
-        QueryEngine --> Resposta["Parecer Técnico com Citação Precisa de Itens"]
+        QueryEngine --> Resposta["Resposta Fundamentada com Citacoes"]
     end
 ```
 
 ---
 
-## 📁 4. Estrutura do Repositório
+## 4. Estrutura de Arquivos
 
-```bash
+```text
 .
-├── nrs_extraidas/                # JSONs estruturados das NRs (árvore hierárquica)
+├── nrs_extraidas/                  # Arvores estruturais das NRs em formato JSON
 │   ├── nr_05_tree.json
 │   ├── nr_06_tree.json
 │   ├── nr_10_tree.json
 │   ├── nr_11_tree.json
 │   └── nr_35_tree.json
-├── NR-05.pdf                     # PDF oficial da NR-05
-├── NR-06.pdf                     # PDF oficial da NR-06
-├── NR-10.pdf                     # PDF oficial da NR-10
-├── NR-11.pdf                     # PDF oficial da NR-11
-├── NR-35.pdf                     # PDF oficial da NR-35
-├── parser.py                     # Parser inicial de extração de PDFs para JSON
-├── parser_fixed.py               # Parser refinado com suporte a prefixos de capítulos
-├── Extracao_json_NRs.ipynb       # Notebook original de extração e validação das árvores
-├── RAG_Hierarquico_NRs_Colab.ipynb # Notebook pronto para execução no Google Colab
-├── config.py                     # Configurações centralizadas (caminhos, escopo, modelos)
-├── node_builder.py               # Conversor dos nós em TextNodes LlamaIndex com grafo hierárquico
-├── ingest.py                     # Script de indexação híbrida no Qdrant Local
-├── retriever.py                  # Motor de busca híbrida, expansão hierárquica e referências cruzadas
-├── query_engine.py               # Pipeline de síntese acadêmica e integração com LLM
-├── main.py                       # Interface CLI (modo interativo, benchmark e consulta pontual)
-├── requirements.txt              # Dependências do projeto
-└── README.md                     # Documentação completa
+├── NR-05.pdf                       # Texto oficial da NR-05
+├── NR-06.pdf                       # Texto oficial da NR-06
+├── NR-10.pdf                       # Texto oficial da NR-10
+├── NR-11.pdf                       # Texto oficial da NR-11
+├── NR-35.pdf                       # Texto oficial da NR-35
+├── parser.py                       # Extrator de PDFs para representacao em arvore
+├── parser_fixed.py                 # Extrator com correcoes de prefixos de capitulos
+├── Extracao_json_NRs.ipynb         # Notebook de apoio para extracao das normas
+├── RAG_Hierarquico_NRs_Colab.ipynb # Notebook para reproducao no Google Colab
+├── config.py                       # Parametros de execucao, modelos e caminhos
+├── node_builder.py                 # Construcao de TextNodes e mapeamento de relacionamentos
+├── ingest.py                       # Pipeline de indexacao no Qdrant
+├── retriever.py                    # Implementacao do retriever hierarquico e referencial
+├── query_engine.py                 # Mecanismo de sintese de respostas e prompts
+├── main.py                         # Interface CLI para testes e consultas
+├── requirements.txt                # Dependencias do projeto
+└── README.md                       # Documentacao tecnica
 ```
 
 ---
 
-## 🚀 5. Como Executar
+## 5. Instrucoes de Execucao
 
-### Opção A: Executar Localmente (Computador / VS Code)
+### Execucao Local
 
-#### 1. Clonar o repositório e criar o ambiente virtual:
+1. Clonar o repositorio e navegar para o diretorio:
 ```bash
 git clone https://github.com/Ricktheus/Artigo-Rag.git
 cd Artigo-Rag
-
-# Criar e ativar ambiente virtual (opcional, mas recomendado)
-python -m venv venv
-# No Windows:
-venv\Scripts\activate
-# No Linux/Mac:
-source venv/bin/activate
 ```
 
-#### 2. Instalar as dependências:
+2. Configurar o ambiente virtual e instalar as dependencias:
 ```bash
+python -m venv venv
+
+# Windows:
+venv\Scripts\activate
+
+# Linux / macOS:
+source venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-#### 3. Executar a Ingestão e Indexação Híbrida:
-*(Lê os JSONs, gera os embeddings e salva o banco Qdrant localmente na pasta `./qdrant_data`)*
+3. Executar o pipeline de ingestao e indexacao:
 ```bash
 python ingest.py
 ```
 
-#### 4. Executar Consultas:
+4. Execucao de consultas:
 
-- **Modo Interativo (Chat no Terminal):**
-  ```bash
-  python main.py
-  ```
-
-- **Bateria de Testes do Artigo (Benchmark Automatizado):**
+- **Execucao da bateria de testes (Benchmark):**
   ```bash
   python main.py --test
   ```
 
-- **Consulta Direta via Linha de Comando:**
+- **Consulta pontual via argumento:**
   ```bash
-  python main.py --query "Quais estabelecimentos devem manter o Prontuário de Instalações Elétricas na NR-10 e quais EPIs são exigidos?"
+  python main.py --query "Quais estabelecimentos devem manter o Prontuario de Instalacoes Eletricas na NR-10 e quais EPIs sao exigidos?"
+  ```
+
+- **Modo interativo:**
+  ```bash
+  python main.py
   ```
 
 ---
 
-### Opção B: Executar no Google Colab (100% Gratuito na Nuvem)
+### Execucao no Google Colab
 
-1. Abra o [Google Colab](https://colab.research.google.com/).
-2. Faça o upload do notebook [`RAG_Hierarquico_NRs_Colab.ipynb`](./RAG_Hierarquico_NRs_Colab.ipynb).
-3. No painel lateral esquerdo (ícone de pasta 📁), faça o upload dos arquivos Python (`config.py`, `node_builder.py`, `ingest.py`, `retriever.py`, `query_engine.py`, `main.py`) e da pasta `nrs_extraidas/`.
-4. Execute as células em sequência:
-   - **Célula 1**: Instalação automática dos pacotes via pip.
-   - **Célula 2**: Ingestão no Qdrant embutido no ambiente do Colab.
-   - **Célula 3**: Inicialização do motor de recuperação.
-   - **Células 4 e 5**: Execução do benchmark e consultas interativas.
+1. Fazer o upload do arquivo `RAG_Hierarquico_NRs_Colab.ipynb` para o Google Colab.
+2. Transferir os modulos Python (`config.py`, `node_builder.py`, `ingest.py`, `retriever.py`, `query_engine.py`, `main.py`) e a pasta `nrs_extraidas/` para o ambiente do runtime.
+3. Executar as celulas do notebook de forma sequencial para instalacao de dependencias, ingestao dos dados e realizacao das consultas.
 
 ---
 
-## 🔬 6. Bateria de Testes e Resultados Experimentais
+## 6. Casos de Teste e Validacao
 
-O script `main.py --test` executa 5 casos de validação acadêmica:
+A suite automatizada implementada em `main.py --test` avalia os seguintes cenarios experimentais:
 
-1. **TEST_01: Exigências de Prontuário Elétrico e Integração com EPIs (NR-10 + NR-06)**
-   - *Recuperação:* `Item 10.2.4` (estabelecimentos com carga > 75 kW).
-   - *Hierarquia Pai:* `Seção 10.2 - Medidas de Controle`.
-   - *Referência Cruzada Resolvida:* `Item 10.2.3` (esquemas unifilares e aterramento).
-2. **TEST_02: Definição de Trabalho em Altura e Proteção Contra Quedas (NR-35 + NR-06)**
-   - *Recuperação:* `Item 35.2.1` (diferença de nível > 2,0 m com risco de queda) e `Item 35.6.5` (sistemas de proteção).
-   - *Hierarquia Pai:* `Seção 35.2 - Campo de Aplicação` e `Seção 35.6 - SPQ`.
-   - *Referência Cruzada Resolvida:* Articulação com a NR-06 para requisitos de CA e fabricante.
-3. **TEST_03: Estrutura e Atribuições da CIPA (NR-05)**
-   - *Recuperação:* `Item 5.3` (Atribuições) e `Item 5.5` (Processo Eleitoral).
-   - *Hierarquia Pai:* `Seção 5.1 - Objetivo` e `Seção 5.4 - Constituição e Estruturação`.
-4. **TEST_04: Operação de Equipamentos de Movimentação de Cargas (NR-11)**
-   - *Recuperação:* `Item 11.1.1` (poços de elevadores cercados) e `Item 11.1.3` (pontes-rolantes, empilhadeiras e talhas).
-5. **TEST_05: Responsabilidades sobre Fornecimento e Uso de EPI (NR-06 + NR-10)**
-   - *Recuperação:* `Item 6.5.1` (obrigações da organização), `Item 6.6.1` (obrigações do trabalhador) e integração com `Item 10.13.4`.
+1. **TEST_01**: Requisitos para constituicao do Prontuario de Instalacoes Eletricas (NR-10, Item 10.2.4) e articulacao com esquemas unifilares (Item 10.2.3).
+2. **TEST_02**: Delimitacao de trabalho em altura (NR-35, Item 35.2.1) e requisitos de sistemas de protecao contra quedas associados a NR-06.
+3. **TEST_03**: Atribuicoes e dimensionamento da CIPA (NR-05, Itens 5.3 e 5.4).
+4. **TEST_04**: Requisitos de seguranca para operacao de equipamentos de transporte e movimentacao de materiais (NR-11, Itens 11.1.1 e 11.1.3).
+5. **TEST_05**: Responsabilidades de organizacoes e empregados na gestao de EPIs (NR-06, Itens 6.5.1 e 6.6.1).
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 7. Componentes Tecnicos
 
-- **LlamaIndex Core**: Orquestração do grafo de nós, relacionamentos estruturais (`NodeRelationship`) e abstração de retrievers customizados.
-- **Qdrant Client & Vector Store**: Banco vetorial local embutido em disco com busca híbrida integrada.
-- **Sentence-Transformers & HuggingFace**: Modelo de embeddings multilíngue `paraphrase-multilingual-MiniLM-L12-v2`.
-- **FastEmbed**: Extração e representação de vetores esparsos BM25 (`Qdrant/bm25`).
-- **PDFPlumber**: Extração determinística de layout e tabelas dos documentos oficiais.
+- **LlamaIndex Core**: Gerenciamento de nos, relacionamentos estruturais (`NodeRelationship`) e extensao de `BaseRetriever`.
+- **Qdrant Client & Vector Store**: Armazenamento vetorial em disco com suporte a busca hibrida.
+- **HuggingFace / Sentence-Transformers**: Modelo `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` para representacao densa em portugues.
+- **FastEmbed**: Geracao de representacoes esparsas baseadas em BM25 (`Qdrant/bm25`).
+- **PDFPlumber**: Extracao textual estruturada a partir dos documentos normativos oficiais.
 
 ---
 
-## 📜 Licença
+## 8. Licenca
 
-Este projeto é disponibilizado sob a licença [MIT](LICENSE). Desenvolvido para fins de pesquisa acadêmica e comprovação empírica de arquiteturas RAG aplicadas ao direito regulatório brasileiro.
+Este projeto e distribuido sob a licenca MIT. Consulte o arquivo `LICENSE` para mais detalhes.

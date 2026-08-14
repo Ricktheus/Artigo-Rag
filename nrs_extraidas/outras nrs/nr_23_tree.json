@@ -1,0 +1,150 @@
+{
+  "_descricao": "Árvore extraída automaticamente de NR-23 via parser (nenhuma relação foi inferida manualmente).",
+  "_total_nodes": 12,
+  "nodes": [
+    {
+      "node_id": "NR23_23.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.1",
+      "depth": 1,
+      "chapter_path": "23 > 23.1",
+      "title": "Objetivo",
+      "content": "",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.1.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.1.1",
+      "depth": 2,
+      "chapter_path": "23 > 23.1 > 23.1.1",
+      "title": null,
+      "content": "Esta Norma Regulamentadora - NR estabelece medidas de prevenção contra incêndios nos ambientes de trabalho.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.2",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.2",
+      "depth": 1,
+      "chapter_path": "23 > 23.2",
+      "title": "Campo de aplicação",
+      "content": "",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.2.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.2.1",
+      "depth": 2,
+      "chapter_path": "23 > 23.2 > 23.2.1",
+      "title": null,
+      "content": "As medidas de prevenção estabelecidas nesta NR se aplicam aos estabelecimentos e locais de trabalho.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3",
+      "depth": 1,
+      "chapter_path": "23 > 23.3",
+      "title": "Medidas de prevenção contra incêndios",
+      "content": "",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.1",
+      "depth": 2,
+      "chapter_path": "23 > 23.3 > 23.3.1",
+      "title": null,
+      "content": "Toda organização deve adotar medidas de prevenção contra incêndios em conformidade com a legislação estadual e, quando aplicável, de forma complementar, com as normas técnicas oficiais.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.2",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.2",
+      "depth": 2,
+      "chapter_path": "23 > 23.3 > 23.3.2",
+      "title": null,
+      "content": "A organização deve providenciar para todos os trabalhadores informações sobre: a) utilização dos equipamentos de combate ao incêndio; b) procedimentos de resposta aos cenários de emergências e para evacuação dos locais de trabalho com segurança; e c) dispositivos de alarme existentes.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.3",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.3",
+      "depth": 2,
+      "chapter_path": "23 > 23.3 > 23.3.3",
+      "title": null,
+      "content": "Os locais de trabalho devem dispor de saídas em número suficiente e dispostas de modo que aqueles que se encontrem nesses locais possam abandoná-los com rapidez e segurança em caso de emergência.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.4",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.4",
+      "depth": 2,
+      "chapter_path": "23 > 23.3 > 23.3.4",
+      "title": null,
+      "content": "As aberturas, saídas e vias de passagem de emergência devem ser identificadas e sinalizadas de acordo com a legislação estadual e, quando aplicável, de forma complementar, com as normas técnicas oficiais, indicando a direção da saída.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.4.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.4.1",
+      "depth": 3,
+      "chapter_path": "23 > 23.3 > 23.3.4 > 23.3.4.1",
+      "title": null,
+      "content": "As aberturas, saídas e vias de passagem devem ser mantidas desobstruídas.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.5",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.5",
+      "depth": 2,
+      "chapter_path": "23 > 23.3 > 23.3.5",
+      "title": null,
+      "content": "Nenhuma saída de emergência deve ser fechada à chave ou presa durante a jornada de trabalho.",
+      "has_table": false,
+      "references": []
+    },
+    {
+      "node_id": "NR23_23.3.5.1",
+      "document_id": "NR-23",
+      "document_type": "NR",
+      "chapter_number": "23.3.5.1",
+      "depth": 3,
+      "chapter_path": "23 > 23.3 > 23.3.5 > 23.3.5.1",
+      "title": null,
+      "content": "As saídas de emergência podem ser equipadas com dispositivos de travamento que permitam fácil abertura do interior do estabelecimento.",
+      "has_table": false,
+      "references": []
+    }
+  ]
+}

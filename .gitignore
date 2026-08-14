@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# Qdrant e Dados de Execução Local
+qdrant_data/
+storage/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs e Arquivos Temporários
+*.log
+scratch/
+.system_generated/
